@@ -6,9 +6,9 @@ Aplikacja analizuje transakcje z emaklera mBanku licząć zysk/stratę oraz poda
 
 ## Instrukcja
 
-Wersje aplikacji do pobrania: https://github.com/mkaflowski/mBank-Analyzer/releases \n
-Należy pobrać plik csv ze WSZYSTKIMI transakcjami historycznymi ze strony mBanku.
-Plik csv można przeciągnąć w pole gdzie należy go podać.
+Wersje aplikacji do pobrania: https://github.com/mkaflowski/mBank-Analyzer/releases <br />
+Należy pobrać plik csv ze WSZYSTKIMI transakcjami historycznymi ze strony mBanku.<br />
+Plik csv można przeciągnąć w pole gdzie należy go podać.<br />
 Aby wyświetlić konsolę z kolorami należy włączyć aplikację z wiersza poleceń:
 ```
 java -jar <sciezka do pobranej aplikacji>
