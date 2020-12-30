@@ -45,11 +45,11 @@ public class MainJavaClass {
         gbc.gridy = 1;
 
         TextArea textArea= new TextArea(36,105);
-        textArea.setFont(new Font("Monaco", Font.CENTER_BASELINE, 12));
+        textArea.setFont(new Font("Courier", 0, 14));
         f.add(textArea , gbc);
 
         f.pack();
-        f.setTitle("Mbank Analyzer (by Mateusz Kaflowski)");
+        f.setTitle("mBank Analyzer (by Mateusz Kaflowski)");
         f.setSize(1000, 750);//400 width and 500 height
 //        f.setLayout(null);//using no layout managers
         f.setVisible(true);//making the frame visible
