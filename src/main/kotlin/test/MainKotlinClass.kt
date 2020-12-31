@@ -3,6 +3,8 @@ package test
 import com.github.doyaaaaaken.kotlincsv.client.CsvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.context.CsvReaderContext
 import java.io.FileNotFoundException
+import java.lang.Exception
+import java.text.ParseException
 import java.text.SimpleDateFormat
 
 const val ANSI_RESET = "\u001B[0m"
@@ -61,34 +63,42 @@ class MainKotlinClass {
 
             //"/Users/mateuszkaflowski/Downloads/maklerfile.Csv"
             try {
-
-
                 reader.open(path) {
-                    readAllAsSequence()
-                    var res: List<String>?
+                    var res: List<String>? = null
                     do {
                         res = readNext()
+
 
                         res?.let {
                             if (res.size != 9 || res[0].contains("czas", true))
                                 return@let
 
                             val transaction = Transaction().apply {
-                                data = SimpleDateFormat("dd.MM.yyyy").parse(res[0]);
-                                walor = res[1]
-                                gielda = res[2]
-                                rodzaj = res[3]
-                                liczba = res[4].replace("\\s".toRegex(), "").toInt()
-                                kurs = res[5].replace("\\s".toRegex(), "")
-                                    .replace(",", ".").toFloat()
-                                walutaKurs = res[6]
-                                wartosc = res[7].replace("\\s".toRegex(), "")
-                                    .replace(",", ".").toFloat()
-                                walutaWartosc = res[8]
+                                println("test")
+                                println(res[0])
 
-                                if (walutaKurs != walutaWartosc) {
-                                    walutaKurs = walutaWartosc
-                                    kurs = wartosc / liczba
+                                try {
+                                    data = SimpleDateFormat("dd.MM.yyyy").parse(res[0])
+
+                                    walor = res[1]
+                                    gielda = res[2]
+                                    rodzaj = res[3]
+                                    liczba = res[4].replace("\\s".toRegex(), "").toInt()
+                                    kurs = res[5].replace("\\s".toRegex(), "")
+                                        .replace(",", ".").toFloat()
+                                    walutaKurs = res[6]
+                                    wartosc = res[7].replace("\\s".toRegex(), "")
+                                        .replace(",", ".").toFloat()
+                                    walutaWartosc = res[8]
+
+                                    if (walutaKurs != walutaWartosc) {
+                                        walutaKurs = walutaWartosc
+                                        kurs = wartosc / liczba
+                                    }
+                                } catch (e: Exception) {
+                                    println("Parsing problem")
+//                                    e.printStackTrace()
+                                    return@let
                                 }
                             }
 
@@ -248,7 +258,7 @@ class MainKotlinClass {
                 getWindowStrongFormat(),
                 "WYNIK CALKOWITY",
                 totalDiff,
-                "$totalPercentage %",""
+                "$totalPercentage %", ""
             )
 
             return resString
