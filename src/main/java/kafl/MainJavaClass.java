@@ -1,5 +1,13 @@
 package kafl;
 
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.IntelliJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatArcDarkOrangeIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatArcIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatArcDarkContrastIJTheme;
 import test.MainKotlinClass;
 
 import javax.swing.*;
@@ -18,6 +26,11 @@ public class MainJavaClass {
     private static KeyListener keyListener;
 
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(new FlatArcDarkContrastIJTheme()); //FlatArcDarkContrastIJTheme
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
 
         JFrame f = new JFrame();//creating instance of JFrame
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -44,7 +57,7 @@ public class MainJavaClass {
         gbc.gridx = 0;
         gbc.gridy = 1;
 
-        TextArea textArea= new TextArea(36,105);
+        JTextArea textArea= new JTextArea(36,105);
         textArea.setFont(new Font(Font.MONOSPACED, Font.CENTER_BASELINE, 12));
         f.add(textArea , gbc);
 
@@ -84,7 +97,7 @@ public class MainJavaClass {
         });
     }
 
-    private static void initKeyListener(JFrame f, SourcePane dataPene, GridBagConstraints gbc, TextArea textArea) {
+    private static void initKeyListener(JFrame f, SourcePane dataPene, GridBagConstraints gbc, JTextArea textArea) {
         keyListener = new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -102,7 +115,7 @@ public class MainJavaClass {
         };
     }
 
-    private static void calc(SourcePane dataPene, TextArea textArea) {
+    private static void calc(SourcePane dataPene, JTextArea textArea) {
         String resString = MainKotlinClass.calc(dataPene.csv.getText().trim(),
                 dataPene.gielda.getText(),
                 dataPene.rok.getText(), dataPene.prowizja.getText());
