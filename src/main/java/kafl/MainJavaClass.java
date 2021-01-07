@@ -1,15 +1,13 @@
 package kafl;
 
-import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLightLaf;
-import com.formdev.flatlaf.IntelliJTheme;
 import com.formdev.flatlaf.intellijthemes.*;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatArcDarkContrastIJTheme;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatDraculaContrastIJTheme;
 import test.MainKotlinClass;
 
 import javax.swing.*;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
@@ -23,15 +21,26 @@ import java.util.List;
 public class MainJavaClass {
 
     private static KeyListener keyListener;
+    private static Highlighter.HighlightPainter greenPainter;
+    private static Highlighter.HighlightPainter redPainter;
+    private static JFrame f;
+    private static JTextArea headerTextArea;
+    private static JTextArea plusTextArea;
+    private static JTextArea minusTextArea;
+    private static JTextArea summaryTextArea;
 
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel(new FlatHiberbeeDarkIJTheme()); //FlatArcDarkContrastIJTheme //FlatArcDarkContrastIJTheme //light: FlatCyanLightIJTheme FlatGrayIJTheme
+            UIManager.setLookAndFeel(new FlatDarkFlatIJTheme()); //FlatArcDarkContrastIJTheme //FlatArcDarkContrastIJTheme //light: FlatCyanLightIJTheme FlatGrayIJTheme
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
 
-        JFrame f = new JFrame();//creating instance of JFrame
+        greenPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.decode("#ffaa00"));
+        redPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.red);
+
+        //creating instance of JFrame
+        f = new JFrame();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         Container contentPane = f.getContentPane();
@@ -49,16 +58,38 @@ public class MainJavaClass {
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST;
 
-//        JButton button;
-//        f.add(button = new JButton("LICZ"), gbc);
-//        button.setBackground(Color.green);
-
         gbc.gridx = 0;
         gbc.gridy = 1;
 
-        JTextArea textArea= new JTextArea(36,105);
-        textArea.setFont(new Font(Font.MONOSPACED, Font.CENTER_BASELINE, 12));
-        f.add(textArea , gbc);
+
+        headerTextArea = new JTextArea(0, 105);
+        setTextAreaStyle(headerTextArea);
+        headerTextArea.setForeground(Color.decode("#3a91cf"));
+        f.add(headerTextArea, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+
+        plusTextArea = new JTextArea(0, 105);
+        setTextAreaStyle(plusTextArea);
+        plusTextArea.setForeground(Color.decode("#559124"));
+        f.add(plusTextArea, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+
+        minusTextArea = new JTextArea(0, 105);
+        setTextAreaStyle(minusTextArea);
+        minusTextArea.setForeground(Color.decode("#d3524f"));
+        f.add(minusTextArea, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+
+        summaryTextArea = new JTextArea(0, 105);
+        setTextAreaStyle(summaryTextArea);
+        summaryTextArea.setForeground(Color.decode("#ffb700"));
+        f.add(summaryTextArea, gbc);
 
         f.pack();
         f.setTitle("mBank Analyzer (by Mateusz Kaflowski)");
@@ -67,9 +98,15 @@ public class MainJavaClass {
         centreWindow(f);
         f.setVisible(true);//making the frame visible
 
-        initKeyListener(f, dataPene, gbc, textArea);
+        initKeyListener(f, dataPene);
         dataPene.setKeyListener(keyListener);
     }
+
+    private static void setTextAreaStyle(JTextArea headerTextArea) {
+        headerTextArea.setFont(new Font(Font.MONOSPACED, Font.CENTER_BASELINE, 12));
+        headerTextArea.setBackground(Color.decode("#2b2b2b"));
+    }
+
     public static void centreWindow(Window frame) {
         Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
         int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
@@ -103,7 +140,7 @@ public class MainJavaClass {
         });
     }
 
-    private static void initKeyListener(JFrame f, SourcePane dataPene, GridBagConstraints gbc, JTextArea textArea) {
+    private static void initKeyListener(JFrame f, SourcePane dataPene) {
         keyListener = new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -116,16 +153,34 @@ public class MainJavaClass {
 
             @Override
             public void keyReleased(KeyEvent e) {
-                calc(dataPene, textArea);
+                calc(dataPene);
             }
         };
     }
 
-    private static void calc(SourcePane dataPene, JTextArea textArea) {
+    private static void calc(SourcePane dataPene) {
         String resString = MainKotlinClass.calc(dataPene.csv.getText().trim(),
                 dataPene.gielda.getText(),
                 dataPene.rok.getText(), dataPene.prowizja.getText());
-        textArea.setText(resString);
+
+        String[] res = resString.split("\n"+MainKotlinClass.getSeparator());
+
+        if (res.length == 4) {
+            headerTextArea.setText(res[0]);
+            plusTextArea.setText(res[1]);
+            minusTextArea.setText(res[2]);
+            summaryTextArea.setText(res[3]);
+        } else
+            headerTextArea.setText(resString);
+//
+//        try {
+//            textArea.getHighlighter().addHighlight(0, 20, DefaultHighlighter.DefaultPainter);
+//            textArea.getHighlighter().addHighlight(21, 50, greenPainter);
+//            textArea.getHighlighter().addHighlight(60, 200, redPainter);
+//        } catch (BadLocationException ble) {
+//            ble.printStackTrace();
+//        }
+
     }
 
     public static class SourcePane extends JPanel {
@@ -165,10 +220,10 @@ public class MainJavaClass {
 
             csv.setText("/Users/mateuszkaflowski/Downloads/maklerfile.Csv");
 
-            setDnD(csv,csv);
+            setDnD(csv, csv);
         }
 
-        public void setKeyListener(KeyListener keyListener){
+        public void setKeyListener(KeyListener keyListener) {
             csv.addKeyListener(keyListener);
             gielda.addKeyListener(keyListener);
             rok.addKeyListener(keyListener);

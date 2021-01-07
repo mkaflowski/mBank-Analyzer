@@ -22,11 +22,6 @@ class MainKotlinClass {
 
     companion object {
         @JvmStatic
-        fun test() {
-            print("test")
-        }
-
-        @JvmStatic
         public fun main(args: Array<String>) {
             println(ANSI_CYAN + "Witaj w programie eMakler Analyser!" + ANSI_RESET)
             println(ANSI_YELLOW + "Podaj ścieżkę pliku csv: " + ANSI_RESET)
@@ -74,8 +69,7 @@ class MainKotlinClass {
                                 return@let
 
                             val transaction = Transaction().apply {
-                                println("test")
-                                println(res[0])
+//                                println(res[0])
 
                                 try {
                                     data = SimpleDateFormat("dd.MM.yyyy").parse(res[0])
@@ -274,14 +268,19 @@ class MainKotlinClass {
 
         private fun addSeparator(resString: String): String {
             var resString1 = resString
-            resString1 += String.format(
+            resString1 += getSeparator()
+            return resString1
+        }
+
+        @JvmStatic
+        fun getSeparator():String{
+            return String.format(
                 getWindowStrongFormat(),
                 "-----------",
                 "-----------",
                 "-----------",
                 "-----------"
-            ) + "\n"
-            return resString1
+            )+ "\n"
         }
 
         private fun getUniqueWalory(transactions: ArrayList<Transaction>): ArrayList<String> {
