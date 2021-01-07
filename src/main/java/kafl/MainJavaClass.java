@@ -4,10 +4,9 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.IntelliJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatArcDarkOrangeIJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatArcIJTheme;
+import com.formdev.flatlaf.intellijthemes.*;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatArcDarkContrastIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatDraculaContrastIJTheme;
 import test.MainKotlinClass;
 
 import javax.swing.*;
@@ -27,7 +26,7 @@ public class MainJavaClass {
 
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel(new FlatArcDarkContrastIJTheme()); //FlatArcDarkContrastIJTheme
+            UIManager.setLookAndFeel(new FlatHiberbeeDarkIJTheme()); //FlatArcDarkContrastIJTheme //FlatArcDarkContrastIJTheme //light: FlatCyanLightIJTheme FlatGrayIJTheme
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
@@ -65,10 +64,17 @@ public class MainJavaClass {
         f.setTitle("mBank Analyzer (by Mateusz Kaflowski)");
         f.setSize(1000, 760);//400 width and 500 height
 //        f.setLayout(null);//using no layout managers
+        centreWindow(f);
         f.setVisible(true);//making the frame visible
 
         initKeyListener(f, dataPene, gbc, textArea);
         dataPene.setKeyListener(keyListener);
+    }
+    public static void centreWindow(Window frame) {
+        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
+        int y = (int) ((dimension.getHeight() - frame.getHeight()) / 2);
+        frame.setLocation(x, y);
     }
 
     public static void setDnD(JTextField f, JTextField csv) {
