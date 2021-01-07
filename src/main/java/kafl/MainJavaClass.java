@@ -94,7 +94,7 @@ public class MainJavaClass {
 
         f.pack();
         f.setTitle("mBank Analyzer (by Mateusz Kaflowski)");
-        f.setSize(1000, 760);//400 width and 500 height
+        f.setSize(800, 760);//400 width and 500 height
 //        f.setLayout(null);//using no layout managers
         centreWindow(f);
         f.setVisible(true);//making the frame visible
@@ -203,8 +203,12 @@ public class MainJavaClass {
             plusTextArea.setText(res[1]);
             minusTextArea.setText(res[2]);
             summaryTextArea.setText(res[3]);
-        } else
+        } else {
             headerTextArea.setText(resString);
+            plusTextArea.setText("");
+            minusTextArea.setText("");
+            summaryTextArea.setText("");
+        }
 
     }
 
