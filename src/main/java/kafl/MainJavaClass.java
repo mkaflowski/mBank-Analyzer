@@ -1,8 +1,6 @@
 package kafl;
 
-import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.intellijthemes.*;
-import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatArcDarkContrastIJTheme;
 import test.MainKotlinClass;
 
 import javax.swing.*;
@@ -16,6 +14,7 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.List;
 
 public class MainJavaClass {
@@ -36,6 +35,8 @@ public class MainJavaClass {
             e.printStackTrace();
         }
 
+        File startCsvFile = getLatDownloadedCsvFile();
+
         greenPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.decode("#ffaa00"));
         redPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.red);
 
@@ -52,6 +53,7 @@ public class MainJavaClass {
 
         SourcePane dataPene = new SourcePane();
         f.add(dataPene);
+        dataPene.csv.setText(startCsvFile.getAbsolutePath());
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -60,7 +62,6 @@ public class MainJavaClass {
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-
 
         headerTextArea = new JTextArea(0, 105);
         setTextAreaStyle(headerTextArea);
@@ -100,6 +101,38 @@ public class MainJavaClass {
 
         initKeyListener(f, dataPene);
         dataPene.setKeyListener(keyListener);
+    }
+
+    private static File getLatDownloadedCsvFile() {
+        String home = System.getProperty("user.home");
+        File file = new File(home + "/Downloads/");
+        System.out.println(file.exists());
+
+
+        // This filter will only include files ending with .py
+        FilenameFilter filter = new FilenameFilter() {
+            @Override
+            public boolean accept(File f, String name) {
+                return name.endsWith(".Csv");
+            }
+        };
+
+        String[] pathnames = file.list(filter);
+
+        long max = 0;
+        File winner = file;
+
+        // For each pathname in the pathnames array
+        for (String pathname : pathnames) {
+            // Print the names of files and directories
+            System.out.println(pathname);
+            File file1 = new File(file + File.separator + pathname);
+            if (file1.lastModified() > max)
+                winner = file1;
+        }
+
+        return winner;
+
     }
 
     private static void setTextAreaStyle(JTextArea headerTextArea) {
@@ -163,7 +196,7 @@ public class MainJavaClass {
                 dataPene.gielda.getText(),
                 dataPene.rok.getText(), dataPene.prowizja.getText());
 
-        String[] res = resString.split("\n"+MainKotlinClass.getSeparator());
+        String[] res = resString.split("\n" + MainKotlinClass.getSeparator());
 
         if (res.length == 4) {
             headerTextArea.setText(res[0]);
@@ -172,14 +205,6 @@ public class MainJavaClass {
             summaryTextArea.setText(res[3]);
         } else
             headerTextArea.setText(resString);
-//
-//        try {
-//            textArea.getHighlighter().addHighlight(0, 20, DefaultHighlighter.DefaultPainter);
-//            textArea.getHighlighter().addHighlight(21, 50, greenPainter);
-//            textArea.getHighlighter().addHighlight(60, 200, redPainter);
-//        } catch (BadLocationException ble) {
-//            ble.printStackTrace();
-//        }
 
     }
 
