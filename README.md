@@ -2,7 +2,7 @@
 
 Aplikacja analizuje transakcje z emaklera mBanku licząć zysk/stratę oraz podaje z jakim kursem nasępne akcje zostaną sprzedane.
 
-![Alt Text](https://github.com/mkaflowski/mBank-Analyzer/blob/master/raw/mbank.jpg?raw=true)
+![Alt Text](https://github.com/mkaflowski/mBank-Analyzer/blob/master/raw/1.3.jpg?raw=true)
 
 ## Instrukcja
 
