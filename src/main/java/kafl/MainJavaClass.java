@@ -11,6 +11,8 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
@@ -35,17 +37,19 @@ public class MainJavaClass {
             e.printStackTrace();
         }
 
-        File startCsvFile = getLatDownloadedCsvFile();
 
         greenPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.decode("#ffaa00"));
         redPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.red);
+
 
         //creating instance of JFrame
         f = new JFrame();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+
         Container contentPane = f.getContentPane();
         contentPane.setLayout(new GridBagLayout());
+
 
         contentPane.addKeyListener(keyListener);
 
@@ -53,7 +57,16 @@ public class MainJavaClass {
 
         SourcePane dataPene = new SourcePane();
         f.add(dataPene);
-        dataPene.csv.setText(startCsvFile.getAbsolutePath());
+        dataPene.getCsvButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                File startCsvFile = getLastDownloadedCsvFile();
+                dataPene.csv.setText(startCsvFile.getAbsolutePath());
+
+                if (startCsvFile.exists())
+                    calc(dataPene);
+            }
+        });
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 1;
@@ -63,7 +76,8 @@ public class MainJavaClass {
         gbc.gridx = 0;
         gbc.gridy = 1;
 
-        headerTextArea = new JTextArea(0, 105);
+        int columns = 115;
+        headerTextArea = new JTextArea(0, columns);
         setTextAreaStyle(headerTextArea);
         headerTextArea.setForeground(Color.decode("#3a91cf"));
         f.add(headerTextArea, gbc);
@@ -71,7 +85,7 @@ public class MainJavaClass {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        plusTextArea = new JTextArea(0, 105);
+        plusTextArea = new JTextArea(0, columns);
         setTextAreaStyle(plusTextArea);
         plusTextArea.setForeground(Color.decode("#559124"));
         f.add(plusTextArea, gbc);
@@ -79,7 +93,7 @@ public class MainJavaClass {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        minusTextArea = new JTextArea(0, 105);
+        minusTextArea = new JTextArea(0, columns);
         setTextAreaStyle(minusTextArea);
         minusTextArea.setForeground(Color.decode("#d3524f"));
         f.add(minusTextArea, gbc);
@@ -87,14 +101,14 @@ public class MainJavaClass {
         gbc.gridx = 0;
         gbc.gridy++;
 
-        summaryTextArea = new JTextArea(0, 105);
+        summaryTextArea = new JTextArea(0, columns);
         setTextAreaStyle(summaryTextArea);
         summaryTextArea.setForeground(Color.decode("#ffb700"));
-        f.add(summaryTextArea, gbc);
 
+        f.add(summaryTextArea, gbc);
         f.pack();
         f.setTitle("mBank Analyzer (by Mateusz Kaflowski)");
-        f.setSize(800, 760);//400 width and 500 height
+        f.setSize(950, 760);//400 width and 500 height
 //        f.setLayout(null);//using no layout managers
         centreWindow(f);
         f.setVisible(true);//making the frame visible
@@ -103,7 +117,7 @@ public class MainJavaClass {
         dataPene.setKeyListener(keyListener);
     }
 
-    private static File getLatDownloadedCsvFile() {
+    private static File getLastDownloadedCsvFile() {
         String home = System.getProperty("user.home");
         File file = new File(home + "/Downloads/");
         System.out.println(file.exists());
@@ -127,8 +141,10 @@ public class MainJavaClass {
             // Print the names of files and directories
             System.out.println(pathname);
             File file1 = new File(file + File.separator + pathname);
-            if (file1.lastModified() > max)
+            if (file1.lastModified() > max) {
                 winner = file1;
+                max = file1.lastModified();
+            }
         }
 
         return winner;
@@ -213,10 +229,11 @@ public class MainJavaClass {
     }
 
     public static class SourcePane extends JPanel {
-        private JTextField csv;
-        private JTextField gielda;
-        private JTextField rok;
-        private JTextField prowizja;
+        private final JTextField csv;
+        private final JTextField gielda;
+        private final JTextField rok;
+        private final JTextField prowizja;
+        private final JButton getCsvButton;
 
         public SourcePane() {
             setLayout(new GridBagLayout());
@@ -227,6 +244,7 @@ public class MainJavaClass {
 
             add(new JLabel("Plik csv: "), gbc);
             gbc.gridy++;
+
             add(new JLabel("Giełda [GPW,NASDAQ] (puste = wszystkie): "), gbc);
             gbc.gridy++;
             add(new JLabel("Rok (puste = wszystkie): "), gbc);
@@ -239,6 +257,11 @@ public class MainJavaClass {
             gbc.fill = GridBagConstraints.HORIZONTAL;
 
             add((csv = new JTextField(30)), gbc);
+
+            gbc.gridx++;
+            add((getCsvButton = new JButton("Znajdź csv")), gbc);
+            gbc.gridx--;
+
             gbc.gridy++;
             add((gielda = new JTextField(10)), gbc);
             gbc.gridy++;
@@ -247,7 +270,7 @@ public class MainJavaClass {
             add((prowizja = new JTextField(10)), gbc);
             prowizja.setText("0.39");
 
-            csv.setText("/Users/mateuszkaflowski/Downloads/maklerfile.Csv");
+            csv.setText("Upuść tutaj plik");
 
             setDnD(csv, csv);
         }

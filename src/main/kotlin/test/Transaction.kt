@@ -8,8 +8,8 @@ class Transaction {
     var gielda: String = ""
     var rodzaj: String = ""
     var liczba = 0
-    var kurs: Float = 0f
+    var kurs: Double = 0.0
     var walutaKurs: String = ""
-    var wartosc: Float = 0f
+    var wartosc: Double = 0.0
     var walutaWartosc: String = ""
 }

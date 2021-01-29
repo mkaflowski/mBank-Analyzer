@@ -4,8 +4,15 @@ import com.github.doyaaaaaken.kotlincsv.client.CsvReader
 import com.github.doyaaaaaken.kotlincsv.dsl.context.CsvReaderContext
 import java.io.FileNotFoundException
 import java.lang.Exception
-import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.math.BigDecimal
+
+import java.util.Locale
+
+import java.text.DecimalFormatSymbols
+
+import java.text.DecimalFormat
+
 
 const val ANSI_RESET = "\u001B[0m"
 const val ANSI_BLACK = "\u001B[30m"
@@ -22,7 +29,7 @@ class MainKotlinClass {
 
     companion object {
         @JvmStatic
-        public fun main(args: Array<String>) {
+        fun main(args: Array<String>) {
             println(ANSI_CYAN + "Witaj w programie eMakler Analyser!" + ANSI_RESET)
             println(ANSI_YELLOW + "Podaj ścieżkę pliku csv: " + ANSI_RESET)
             var path = readLine()!!.trim()
@@ -43,9 +50,9 @@ class MainKotlinClass {
 
         @JvmStatic
         fun calc(path: String, gieldaFilter: String, rokFilter: String, prowizjaIn: String): String {
-            var prowizja = 0.39f
+            var prowizja = 0.39
             if (!prowizjaIn.isEmpty())
-                prowizja = prowizjaIn.replace(",", ".").toFloat()
+                prowizja = prowizjaIn.replace(",", ".").toDouble()
             val transactions = ArrayList<Transaction>()
             val context = CsvReaderContext().apply {
                 charset = Charsets.ISO_8859_1.name()
@@ -79,14 +86,15 @@ class MainKotlinClass {
                                     rodzaj = res[3]
                                     liczba = res[4].replace("\\s".toRegex(), "").toInt()
                                     kurs = res[5].replace("\\s".toRegex(), "")
-                                        .replace(",", ".").toFloat()
+                                        .replace(",", ".").toDouble()
                                     walutaKurs = res[6]
                                     wartosc = res[7].replace("\\s".toRegex(), "")
-                                        .replace(",", ".").toFloat()
+                                        .replace(",", ".").toDouble()
                                     walutaWartosc = res[8]
 
                                     if (walutaKurs != walutaWartosc) {
                                         walutaKurs = walutaWartosc
+
                                         kurs = wartosc / liczba
                                     }
                                 } catch (e: Exception) {
@@ -120,73 +128,89 @@ class MainKotlinClass {
             return calcFinalRes(transactions, rokFilter, prowizja)
         }
 
-        private fun calcFinalRes(transactions: ArrayList<Transaction>, rokFilter: String, prowizja: Float): String {
+        private fun calcFinalRes(transactions: ArrayList<Transaction>, rokFilter: String, prowizja: Double): String {
+            var res = ""
+
             // unikalne walory
             val walory = getUniqueWalory(transactions)
 
-            var totalBought = 0f
-            var totalSold = 0f
+            var totalBought = 0.0
+            var totalSold = 0.0
             val resList = ArrayList<StockResult>()
 
             //liczenie transakcji calosciowych dla walorow
-            for (walor in walory) {
+            walor@ for (walor in walory) {
                 val buyTrans =
                     ArrayList<Transaction>().apply { addAll(transactions.filter { it.walor == walor && it.rodzaj == "K" }) }
                 val sellTrans = transactions.filter { it.walor == walor && it.rodzaj == "S" }
 
-                var totalTansBought = 0f
-                var totalTransSold = 0f
+                var totalTansBought = 0.0
+                var totalTransSold = 0.0
+
+                var totalAkcjeSold = 0
 
                 for (sellTran in sellTrans) {
+
                     val liczba = sellTran.liczba
-                    val buyValue = getBuyTransValueAndProcess(buyTrans, liczba)
+                    println("$walor $liczba")
 
-                    if (rokFilter.isNotEmpty()) {
-                        val year = sellTran.data.year + 1900
-                        if (year.toString() != rokFilter && sellTran.rodzaj == "S")
-                            continue
+                    try {
+                        val buyValue = getBuyTransValueAndProcess(buyTrans, liczba)
+                        if (rokFilter.isNotEmpty()) {
+                            val year = sellTran.data.year + 1900
+                            if (year.toString() != rokFilter && sellTran.rodzaj == "S")
+                                continue
+                        }
+
+                        totalAkcjeSold += liczba
+
+                        totalTansBought += buyValue + (buyValue * prowizja / 100)
+                        totalTransSold += sellTran.wartosc - (sellTran.wartosc * prowizja / 100)
+
+                        totalBought += buyValue + (buyValue * prowizja / 100)
+                        totalSold += sellTran.wartosc - (sellTran.wartosc * prowizja / 100)
+
+//                    println("$walor SPRZEDANO ${sellTran.liczba} za ${sellTran.wartosc} KUPIONYCH ZA ${buyValue} ")
+                    } catch (e: NegativeArraySizeException) {
+                        res += "\t$walor \tBŁĘDNA LICZBA AKCJI - WIĘCEJ SPRZEDANYCH NIŻ KUPINYCH\n"
+                        continue@walor
                     }
-
-                    totalTansBought += buyValue + (buyValue * prowizja / 100)
-                    totalTransSold += sellTran.wartosc - (sellTran.wartosc * prowizja / 100)
-
-                    totalBought += buyValue + (buyValue * prowizja / 100)
-                    totalSold += sellTran.wartosc - (sellTran.wartosc * prowizja / 100)
-//                println("SPRZEDANO ${sellTran.liczba} za ${sellTran.wartosc} KUPIONYCH ZA ${buyValue} ")
                 }
 
                 val diff = totalTransSold - totalTansBought
                 val percentage = totalTransSold * 100 / totalTansBought - 100
 
-                val nextPrice = if (buyTrans.size > 0) buyTrans[0].kurs else 0f
+                val nextPrice = if (buyTrans.size > 0) buyTrans[0].kurs else 0.0
 
                 resList.add(StockResult().apply {
                     this.walor = walor
                     this.res = diff
                     perc = percentage
                     this.nextPrice = nextPrice
+                    this.avrageSold = totalTransSold / totalAkcjeSold
+                    this.avrageBought = totalTansBought / totalAkcjeSold
                 })
-//            println("$walor \t\t $diff \t $percentage %")
+//            println("$walor \t\t $diff \t $percentage  %")
             }
 
             val diff = totalSold - totalBought
             val percentage = totalSold * 100 / totalBought - 100
 
-            return printFinalRes(resList, diff, percentage)
+            res += "\n" + printFinalRes(resList, diff, percentage)
+            return res
         }
 
-        private fun printFinalRes(resList: ArrayList<StockResult>, totalDiff: Float, totalPercentage: Float): String {
+        private fun printFinalRes(resList: ArrayList<StockResult>, totalDiff: Double, totalPercentage: Double): String {
             var resString = ""
             println(
                 ANSI_BLUE +
-                        String.format("%15s %15s %15s %15s", "WALOR", "ZYSK", "PROCENT", "N. SPRZEDAZ")
+                        String.format("%15s %15s %15s %35s", "WALOR", "ZYSK", "PROCENT", "ŚR. K/S (NASTĘPNA S)")
                         + ANSI_RESET
             )
 
-
             resString += String.format(
                 getWindowStrongFormat(),
-                "WALOR", "ZYSK", "PROCENT", "N. SPRZEDAZ"
+                "WALOR", "ZYSK", "PROCENT", "ŚR. K/S (NASTĘPNA S)"
             ) + "\n"
             resString = addSeparator(resString) + "\n"
 
@@ -196,14 +220,16 @@ class MainKotlinClass {
             var separatorAdded = false
 
             for (stockResult in resList) {
-                if (stockResult.res == 0f)
+                if (stockResult.res == 0.0)
                     continue
-                val diffString = String.format("%.2f", stockResult.res)
+                val diffString = getFormattedNumber(stockResult.res)
                 val percentageString = String.format("%.2f", stockResult.perc) + " %"
                 var nextPrice = String.format("%.2f", stockResult.nextPrice)
-                if (stockResult.nextPrice == 0f)
+                if (stockResult.nextPrice == 0.0)
                     nextPrice = "-"
 
+                val avrageBought = getFormattedNumber(stockResult.avrageBought)
+                val avrageSold = getFormattedNumber(stockResult.avrageSold)
 
                 var color = ANSI_WHITE
                 if (stockResult.perc > 1)
@@ -219,22 +245,21 @@ class MainKotlinClass {
                 println(
                     color +
                             String.format(
-                                "%15s %15s %15s %15s",
+                                "%15s %15s %15s %35s",
                                 stockResult.walor,
                                 diffString,
                                 percentageString,
-                                nextPrice
+                                "$avrageBought / $avrageSold ($nextPrice)"
                             )
                             + ANSI_RESET
                 )
-
 
                 resString += String.format(
                     getWindowStrongFormat(),
                     stockResult.walor + " |",
                     diffString,
                     percentageString,
-                    nextPrice
+                    "$avrageBought / $avrageSold ($nextPrice)"
                 ) + "\n"
             }
 
@@ -245,24 +270,37 @@ class MainKotlinClass {
                 color = ANSI_GREEN
             if (totalDiff < -1)
                 color = ANSI_RED
-            println(color + "WYNIK CALKOWITY = $totalDiff : $totalPercentage %" + ANSI_RESET)
+
+
+            println(color + "WYNIK CALKOWITY = ${getFormattedNumber(totalDiff)} : $totalPercentage %" + ANSI_RESET)
 
             resString = addSeparator(resString)
             resString += String.format(
                 getWindowStrongFormat(),
                 "WYNIK CALKOWITY",
-                totalDiff,
-                "$totalPercentage %", ""
+                getFormattedNumber(totalDiff),
+                "${getFormattedNumber(totalPercentage)} %", ""
             )
 
             return resString
+        }
+
+        private fun getFormattedNumber(d: Double): String {
+            val df = DecimalFormat(
+                "#,##0.00",
+                DecimalFormatSymbols(Locale("pt", "BR"))
+            )
+
+            val value = BigDecimal(d)
+
+            return df.format(value.toFloat().toDouble())
         }
 
         private fun getWindowStrongFormat(): String {
             val leng1 = 30
             val leng2 = 20
             val leng3 = 20
-            val leng4 = 20
+            val leng4 = 35
             return "%" + leng1 + "s %" + leng2 + "s %" + leng3 + "s %" + leng4 + "s"
         }
 
@@ -273,14 +311,14 @@ class MainKotlinClass {
         }
 
         @JvmStatic
-        fun getSeparator():String{
+        fun getSeparator(): String {
             return String.format(
                 getWindowStrongFormat(),
                 "-----------",
                 "-----------",
                 "-----------",
                 "-----------"
-            )+ "\n"
+            ) + "\n"
         }
 
         private fun getUniqueWalory(transactions: ArrayList<Transaction>): ArrayList<String> {
@@ -297,11 +335,15 @@ class MainKotlinClass {
         /**
          * Zwraca wartość akcji w momencie zakupu i usuwa je z historii
          */
-        fun getBuyTransValueAndProcess(buyTrans: ArrayList<Transaction>, liczba: Int): Float {
+        fun getBuyTransValueAndProcess(buyTrans: ArrayList<Transaction>, liczba: Int): Double {
+            if (buyTrans.size == 0 && liczba > 0) {
+                println("BŁĘDNA LICZBA AKCJI - WIĘCEJ SPRZEDANYCH NIŻ KUPINYCH")
+                throw NegativeArraySizeException()
+            }
             if (buyTrans.size == 0)
-                return 0f
+                return 0.0
 
-            var res: Float
+            var res: Double
             val buyTran = buyTrans[0]
             if (liczba <= buyTran.liczba) {
                 buyTran.liczba -= liczba
