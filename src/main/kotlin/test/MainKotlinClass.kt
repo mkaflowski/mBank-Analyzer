@@ -12,6 +12,7 @@ import java.util.Locale
 import java.text.DecimalFormatSymbols
 
 import java.text.DecimalFormat
+import kotlin.math.min
 
 
 const val ANSI_RESET = "\u001B[0m"
@@ -84,6 +85,9 @@ class MainKotlinClass {
                                     walor = res[1]
                                     gielda = res[2]
                                     rodzaj = res[3]
+                                    if (rodzaj == "K")
+                                        walor = removeIpoName(walor, transactions)
+
                                     liczba = res[4].replace("\\s".toRegex(), "").toInt()
                                     kurs = res[5].replace("\\s".toRegex(), "")
                                         .replace(",", ".").toDouble()
@@ -128,6 +132,21 @@ class MainKotlinClass {
             return calcFinalRes(transactions, rokFilter, prowizja)
         }
 
+        private fun removeIpoName(walor: String, transactions: ArrayList<Transaction>): String {
+            if (walor.contains("-IPO")) {
+                val res = transactions.find { transaction ->
+                    transaction.walor.contains(
+                        walor.subSequence(0, min(2, walor.length))
+                    )
+                }
+                res?.let {
+                    println("ZNALEZIONO IPO: $walor -> ${it.walor}")
+                    return it.walor
+                }
+            }
+            return walor
+        }
+
         private fun calcFinalRes(transactions: ArrayList<Transaction>, rokFilter: String, prowizja: Double): String {
             var res = ""
 
@@ -152,10 +171,10 @@ class MainKotlinClass {
                 for (sellTran in sellTrans) {
 
                     val liczba = sellTran.liczba
-                    println("$walor $liczba")
+//                    println("$walor $liczba ${sellTran.data}")
 
                     try {
-                        val buyValue = getBuyTransValueAndProcess(buyTrans, liczba)
+                        val buyValue = getBuyTransValueAndProcess(buyTrans, sellTran)
                         if (rokFilter.isNotEmpty()) {
                             val year = sellTran.data.year + 1900
                             if (year.toString() != rokFilter && sellTran.rodzaj == "S")
@@ -335,9 +354,10 @@ class MainKotlinClass {
         /**
          * Zwraca wartość akcji w momencie zakupu i usuwa je z historii
          */
-        fun getBuyTransValueAndProcess(buyTrans: ArrayList<Transaction>, liczba: Int): Double {
-            if (buyTrans.size == 0 && liczba > 0) {
-                println("BŁĘDNA LICZBA AKCJI - WIĘCEJ SPRZEDANYCH NIŻ KUPINYCH")
+        fun getBuyTransValueAndProcess(buyTrans: ArrayList<Transaction>, sellTran: Transaction): Double {
+            if (buyTrans.size == 0 && sellTran.liczba > 0) {
+                println("${sellTran.walor} - BŁĘDNA LICZBA AKCJI - WIĘCEJ SPRZEDANYCH NIŻ KUPINYCH")
+//                return 0.0
                 throw NegativeArraySizeException()
             }
             if (buyTrans.size == 0)
@@ -345,15 +365,22 @@ class MainKotlinClass {
 
             var res: Double
             val buyTran = buyTrans[0]
-            if (liczba <= buyTran.liczba) {
-                buyTran.liczba -= liczba
-                res = buyTran.kurs * liczba
+
+            if (buyTran.data.after(sellTran.data)) {
+                println("${sellTran.walor} ${sellTran.data} - SPRZEDAŻ PRZED ZAKUPEM? - UZNAJĘ SPLIT")
+                return 0.0
+            }
+
+            if (sellTran.liczba <= buyTran.liczba) {
+                buyTran.liczba -= sellTran.liczba
+                res = buyTran.kurs * sellTran.liczba
                 if (buyTran.liczba == 0)
                     buyTrans.removeAt(0)
             } else {
                 res = buyTran.kurs * buyTran.liczba
                 buyTrans.removeAt(0)
-                res += getBuyTransValueAndProcess(buyTrans, liczba - buyTran.liczba)
+                sellTran.liczba -= buyTran.liczba
+                res += getBuyTransValueAndProcess(buyTrans, sellTran)
             }
 
             return res
