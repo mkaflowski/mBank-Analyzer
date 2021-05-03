@@ -17,6 +17,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Date;
 import java.util.List;
 
 public class MainJavaClass {
@@ -29,6 +30,8 @@ public class MainJavaClass {
     private static JTextArea plusTextArea;
     private static JTextArea minusTextArea;
     private static JTextArea summaryTextArea;
+    private static JPanel content;
+    private static JScrollPane scrollPane;
 
     public static void main(String[] args) {
         try {
@@ -37,19 +40,15 @@ public class MainJavaClass {
             e.printStackTrace();
         }
 
-
         greenPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.decode("#ffaa00"));
         redPainter = new DefaultHighlighter.DefaultHighlightPainter(Color.red);
-
 
         //creating instance of JFrame
         f = new JFrame();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-
         Container contentPane = f.getContentPane();
         contentPane.setLayout(new GridBagLayout());
-
 
         contentPane.addKeyListener(keyListener);
 
@@ -68,6 +67,8 @@ public class MainJavaClass {
             }
         });
 
+
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
@@ -80,7 +81,12 @@ public class MainJavaClass {
         headerTextArea = new JTextArea(0, columns);
         setTextAreaStyle(headerTextArea);
         headerTextArea.setForeground(Color.decode("#3a91cf"));
-        f.add(headerTextArea, gbc);
+//        f.add(headerTextArea, gbc);
+
+
+        content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.add(headerTextArea);
 
         gbc.gridx = 0;
         gbc.gridy++;
@@ -88,24 +94,30 @@ public class MainJavaClass {
         plusTextArea = new JTextArea(0, columns);
         setTextAreaStyle(plusTextArea);
         plusTextArea.setForeground(Color.decode("#559124"));
-        f.add(plusTextArea, gbc);
+//        f.add(plusTextArea, gbc);
+        content.add(plusTextArea);
 
-        gbc.gridx = 0;
-        gbc.gridy++;
+
 
         minusTextArea = new JTextArea(0, columns);
         setTextAreaStyle(minusTextArea);
         minusTextArea.setForeground(Color.decode("#d3524f"));
-        f.add(minusTextArea, gbc);
+        content.add(minusTextArea);
 
-        gbc.gridx = 0;
-        gbc.gridy++;
 
         summaryTextArea = new JTextArea(0, columns);
         setTextAreaStyle(summaryTextArea);
         summaryTextArea.setForeground(Color.decode("#ffb700"));
 
-        f.add(summaryTextArea, gbc);
+        content.add(summaryTextArea);
+
+        scrollPane = new JScrollPane(content);
+        scrollPane.createVerticalScrollBar();
+        scrollPane.createHorizontalScrollBar();
+        scrollPane.setPreferredSize(new Dimension(850, 550));
+
+        f.add(scrollPane, gbc);
+
         f.pack();
         f.setTitle("mBank Analyzer (by Mateusz Kaflowski)");
         f.setSize(950, 760);//400 width and 500 height
@@ -115,6 +127,7 @@ public class MainJavaClass {
 
         initKeyListener(f, dataPene);
         dataPene.setKeyListener(keyListener);
+
     }
 
     private static File getLastDownloadedCsvFile() {
@@ -266,6 +279,7 @@ public class MainJavaClass {
             add((gielda = new JTextField(10)), gbc);
             gbc.gridy++;
             add((rok = new JTextField(10)), gbc);
+            rok.setText(String.valueOf(new Date().getYear()+1900));
             gbc.gridy++;
             add((prowizja = new JTextField(10)), gbc);
             prowizja.setText("0.39");
