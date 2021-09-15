@@ -50,7 +50,13 @@ class MainKotlinClass {
         }
 
         @JvmStatic
-        fun calc(path: String, gieldaFilter: String, rokFilter: String, prowizjaIn: String): String {
+        fun calc(
+            path: String,
+            gieldaFilter: String,
+            rokFilter: String,
+            prowizjaIn: String,
+            prowizjaZPliku: Boolean = true
+        ): String {
             var prowizja = 0.39
             if (!prowizjaIn.isEmpty())
                 prowizja = prowizjaIn.replace(",", ".").toDouble()
@@ -85,7 +91,7 @@ class MainKotlinClass {
                                     gielda = res[2]
                                     rodzaj = res[3]
 //                                    if (rodzaj == "K")
-                                        walor = removeIpoNameAndPDA(walor, transactions)
+                                    walor = removeIpoNameAndPDA(walor, transactions)
 
                                     liczba = res[4].replace("\\s".toRegex(), "").toInt()
                                     kurs = res[5].replace("\\s".toRegex(), "")
@@ -102,6 +108,9 @@ class MainKotlinClass {
                                     if (res.size == 11) {
                                         wartosc = res[9].replace("\\s".toRegex(), "")
                                             .replace(",", ".").toDouble()
+                                        if (prowizjaZPliku)
+                                            this.prowizja = res[7].replace("\\s".toRegex(), "")
+                                                .replace(",", ".").toDouble()
                                         walutaWartosc = res[10]
                                     }
 
@@ -142,7 +151,7 @@ class MainKotlinClass {
         }
 
         private fun removeIpoNameAndPDA(walor: String, transactions: ArrayList<Transaction>): String {
-            if (walor.contains("-IPO") || walor.contains("GROU-PDA") ) {
+            if (walor.contains("-IPO") || walor.contains("GROU-PDA")) {
                 val res = transactions.find { transaction ->
                     transaction.walor.contains(
                         walor.subSequence(0, min(2, walor.length))
@@ -193,11 +202,19 @@ class MainKotlinClass {
 
                         totalAkcjeSold += liczba
 
-                        totalTansBought += buyValue + (buyValue * prowizja / 100)
-                        totalTransSold += sellTran.wartosc - (sellTran.wartosc * prowizja / 100)
+                        val b = buyValue + (buyValue * prowizja / 100)
+                        var s: Double
+                        if (sellTran.prowizja == 0.0) {
+                            s = sellTran.wartosc - (sellTran.wartosc * prowizja / 100)
+                        } else {
+                            s = sellTran.wartosc - sellTran.prowizja
+                        }
 
-                        totalBought += buyValue + (buyValue * prowizja / 100)
-                        totalSold += sellTran.wartosc - (sellTran.wartosc * prowizja / 100)
+                        totalTansBought += b
+                        totalTransSold += s
+
+                        totalBought += b
+                        totalSold += s
 
 //                    println("$walor SPRZEDANO ${sellTran.liczba} za ${sellTran.wartosc} KUPIONYCH ZA ${buyValue} ")
                     } catch (e: NegativeArraySizeException) {
@@ -402,6 +419,4 @@ class MainKotlinClass {
             return res
         }
     }
-
-
 }

@@ -97,7 +97,6 @@ public class MainJavaClass {
         content.add(plusTextArea);
 
 
-
         minusTextArea = new JTextArea(0, columns);
         setTextAreaStyle(minusTextArea);
         minusTextArea.setForeground(Color.decode("#d3524f"));
@@ -222,7 +221,7 @@ public class MainJavaClass {
     private static void calc(SourcePane dataPene) {
         String resString = MainKotlinClass.calc(dataPene.csv.getText().trim(),
                 dataPene.gielda.getText(),
-                dataPene.rok.getText(), dataPene.prowizja.getText());
+                dataPene.rok.getText(), dataPene.prowizja.getText(), dataPene.prowizjaCBox.isSelected());
 
         String[] res = resString.split("\n" + MainKotlinClass.getSeparator());
 
@@ -246,6 +245,7 @@ public class MainJavaClass {
         private final JTextField rok;
         private final JTextField prowizja;
         private final JButton getCsvButton;
+        private final JCheckBox prowizjaCBox;
 
         public SourcePane() {
             setLayout(new GridBagLayout());
@@ -272,13 +272,22 @@ public class MainJavaClass {
 
             gbc.gridx++;
             add((getCsvButton = new JButton("Znajdź csv")), gbc);
+            gbc.gridy++;
+            gbc.gridy++;
+            gbc.gridy++;
+            add((prowizjaCBox = new JCheckBox("Prowizja dla S z pliku")), gbc);
+            prowizjaCBox.setSelected(true);
+            gbc.gridy--;
+            gbc.gridy--;
+            gbc.gridy--;
+
             gbc.gridx--;
 
             gbc.gridy++;
             add((gielda = new JTextField(10)), gbc);
             gbc.gridy++;
             add((rok = new JTextField(10)), gbc);
-            rok.setText(String.valueOf(new Date().getYear()+1900));
+            rok.setText(String.valueOf(new Date().getYear() + 1900));
             gbc.gridy++;
             add((prowizja = new JTextField(10)), gbc);
             prowizja.setText("0.39");
@@ -293,6 +302,12 @@ public class MainJavaClass {
             gielda.addKeyListener(keyListener);
             rok.addKeyListener(keyListener);
             prowizja.addKeyListener(keyListener);
+            prowizjaCBox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    keyListener.keyReleased(null);
+                }
+            });
         }
 
 

@@ -12,4 +12,5 @@ class Transaction {
     var walutaKurs: String = ""
     var wartosc: Double = 0.0
     var walutaWartosc: String = ""
+    var prowizja: Double = 0.0
 }
