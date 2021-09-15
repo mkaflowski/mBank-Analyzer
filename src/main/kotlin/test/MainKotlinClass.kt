@@ -71,9 +71,8 @@ class MainKotlinClass {
                     do {
                         res = readNext()
 
-
                         res?.let {
-                            if (res.size != 9 || res[0].contains("czas", true))
+                            if ((res.size != 9 && res.size != 11) || res[0].contains("czas", true))
                                 return@let
 
                             val transaction = Transaction().apply {
@@ -85,16 +84,26 @@ class MainKotlinClass {
                                     walor = res[1]
                                     gielda = res[2]
                                     rodzaj = res[3]
-                                    if (rodzaj == "K")
-                                        walor = removeIpoName(walor, transactions)
+//                                    if (rodzaj == "K")
+                                        walor = removeIpoNameAndPDA(walor, transactions)
 
                                     liczba = res[4].replace("\\s".toRegex(), "").toInt()
                                     kurs = res[5].replace("\\s".toRegex(), "")
                                         .replace(",", ".").toDouble()
                                     walutaKurs = res[6]
-                                    wartosc = res[7].replace("\\s".toRegex(), "")
-                                        .replace(",", ".").toDouble()
-                                    walutaWartosc = res[8]
+
+                                    //stara wersja
+                                    if (res.size == 9) {
+                                        wartosc = res[7].replace("\\s".toRegex(), "")
+                                            .replace(",", ".").toDouble()
+                                        walutaWartosc = res[8]
+                                    }
+                                    //nowa wersja
+                                    if (res.size == 11) {
+                                        wartosc = res[9].replace("\\s".toRegex(), "")
+                                            .replace(",", ".").toDouble()
+                                        walutaWartosc = res[10]
+                                    }
 
                                     if (walutaKurs != walutaWartosc) {
                                         walutaKurs = walutaWartosc
@@ -132,8 +141,8 @@ class MainKotlinClass {
             return calcFinalRes(transactions, rokFilter, prowizja)
         }
 
-        private fun removeIpoName(walor: String, transactions: ArrayList<Transaction>): String {
-            if (walor.contains("-IPO")) {
+        private fun removeIpoNameAndPDA(walor: String, transactions: ArrayList<Transaction>): String {
+            if (walor.contains("-IPO") || walor.contains("GROU-PDA") ) {
                 val res = transactions.find { transaction ->
                     transaction.walor.contains(
                         walor.subSequence(0, min(2, walor.length))
@@ -143,6 +152,7 @@ class MainKotlinClass {
                     println("ZNALEZIONO IPO: $walor -> ${it.walor}")
                     return it.walor
                 }
+
             }
             return walor
         }
@@ -374,12 +384,18 @@ class MainKotlinClass {
             if (sellTran.liczba <= buyTran.liczba) {
                 buyTran.liczba -= sellTran.liczba
                 res = buyTran.kurs * sellTran.liczba
+
+//                println("${buyTran.walor} ${buyTran.kurs} ${sellTran.kurs} - SPRZEDAŻ")
+
                 if (buyTran.liczba == 0)
                     buyTrans.removeAt(0)
             } else {
                 res = buyTran.kurs * buyTran.liczba
                 buyTrans.removeAt(0)
                 sellTran.liczba -= buyTran.liczba
+
+//                println("${buyTran.walor} ${buyTran.kurs} ${sellTran.kurs} - SPRZEDAŻ")
+
                 res += getBuyTransValueAndProcess(buyTrans, sellTran)
             }
 

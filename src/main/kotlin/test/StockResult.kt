@@ -1,7 +1,5 @@
 package test
 
-import java.util.*
-
 class StockResult {
     var walor: String = ""
     var perc= 0.0

@@ -68,7 +68,6 @@ public class MainJavaClass {
         });
 
 
-
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
